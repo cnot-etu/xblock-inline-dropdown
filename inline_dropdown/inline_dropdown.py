@@ -3,6 +3,7 @@
 import pkg_resources
 from django.template import Context, Template
 from django.utils.translation import ungettext
+from django.template.loader import get_template
 
 from xblock.core import XBlock
 from xblock.fields import Scope, String, List, Float, Integer, Dict, Boolean
@@ -14,11 +15,13 @@ from xml.etree.ElementTree import Element, SubElement
 
 from StringIO import StringIO
 
+from .mixins import EnforceDueDates
+
 import textwrap
 import operator
 
 
-class InlineDropdownXBlock(XBlock):
+class InlineDropdownXBlock(EnforceDueDates, XBlock):
     '''
     Icon of the XBlock. Values : [other (default), video, problem]
     '''
@@ -123,6 +126,18 @@ class InlineDropdownXBlock(XBlock):
 
     has_score = True
 
+    def build_fragment(
+        self,
+        template,
+        context_dict,
+    ):
+        """
+        Creates a fragment for display.
+        """
+        context = Context(context_dict)
+        fragment = Fragment(template.render(context))
+        return fragment
+
     '''
     Main functions
     '''
@@ -131,15 +146,21 @@ class InlineDropdownXBlock(XBlock):
         The primary view of the XBlock, shown to students
         when viewing courses.
         '''
+        context = context or {}
         problem_progress = self._get_problem_progress()
         prompt = self._get_body(self.question_string)
-
         attributes = ''
-        html = self.resource_string('static/html/inline_dropdown_view.html')
-        frag = Fragment(html.format(display_name=self.display_name,
-                                    problem_progress=problem_progress,
-                                    prompt=prompt,
-                                    attributes=attributes))
+        context.update(
+            {
+                'display_name': self.display_name,
+                'problem_progress': problem_progress,
+                'prompt': prompt,
+                'attributes': attributes,
+                'is_past_due': self.is_past_due(),
+            }
+        )
+        template = get_template('inline_dropdown_view.html')
+        frag = self.build_fragment(template, context)
         frag.add_css(self.resource_string('static/css/inline_dropdown.css'))
         frag.add_javascript(self.resource_string('static/js/inline_dropdown_view.js'))
         frag.initialize_js('InlineDropdownXBlockInitView')
@@ -155,7 +176,7 @@ class InlineDropdownXBlock(XBlock):
             'weight': self.weight,
             'xml_data': self.question_string,
         }
-        html = self.render_template('static/html/inline_dropdown_edit.html', context)
+        html = self.render_template('templates/inline_dropdown_edit.html', context)
 
         frag = Fragment(html)
         frag.add_javascript(self.load_resource('static/js/inline_dropdown_edit.js'))
@@ -177,6 +198,15 @@ class InlineDropdownXBlock(XBlock):
         '''
         Save student answer
         '''
+        if self.is_past_due():
+            return {
+                'success': False,
+                'problem_progress': self._get_problem_progress(),
+                'submissions': self.selections,
+                'feedback': self.current_feedback,
+                'correctness': self.student_correctness,
+                'selection_order': self.selection_order,
+            }
 
         self.selections = submissions['selections']
         self.selection_order = submissions['selection_order']
