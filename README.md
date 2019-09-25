@@ -9,8 +9,26 @@ Installation
 To install the Inline Dropdown XBlock within your edX python environment, simply run this command:
 
 ```bash
+$ sudo -Hu edxapp bash
+$ git clone https://github.com/eazaika/xblock-inline-dropdown.git
+$ cd && . edxapp_env  && . ./venvs/edxapp/bin/activate && cd xblock-inline-dropdown/
 $ pip install -r requirements.txt
 ```
+Then add:
+--------------
+edx-platform/[l|c]ms/envs/common.py
+```
+OPTIONAL_APPS = (
+...
+    ('inline_dropdown', None),
+```
+[l|c]ms.env.json
+```
+    "ADD_INSTALLED_APPS": [
+        "inline_dropdown",
+    ]
+```
+Then recompile your static files and restart production app.
 
 Enabling in Studio
 ------------------
