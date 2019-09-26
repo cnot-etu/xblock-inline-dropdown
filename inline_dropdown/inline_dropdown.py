@@ -1,7 +1,7 @@
 '''  Inline Dropdown XBlock main Python class'''
 
 import pkg_resources
-from django.template import Template
+from django.template import Context, Template
 from django.utils.translation import ungettext
 from django.template.loader import get_template
 
@@ -380,7 +380,7 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
         Evaluate a template by resource path, applying the provided context
         '''
         template_str = self.load_resource(template_path)
-        return Template(template_str).render(context)
+        return Template(template_str).render(Context(context))
 
     def resource_string(self, path):
         '''Handy helper for getting resources from our kit.'''
