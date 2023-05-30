@@ -13,7 +13,7 @@ from lxml import etree
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement
 
-from StringIO import StringIO
+from io import StringIO
 
 from .mixins import EnforceDueDates
 
@@ -215,7 +215,7 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
         correct_count = 0
 
         # use sorted selection_order to iterate through selections dict
-        for key,pos in sorted(self.selection_order.iteritems(), key=lambda (k,v): (v,k)):
+        for key, pos in sorted(self.selection_order.iteritems(), key=lambda kv: (kv[1], kv[0])):
             selected_text = self.selections[key]
 
             if self.correctness[key][selected_text] == 'True':
