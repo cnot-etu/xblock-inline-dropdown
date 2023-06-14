@@ -219,10 +219,10 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
             selected_text = self.selections[key]
 
             if self.correctness[key][selected_text] == 'True':
-                default_feedback = '<p class="correct"><strong>(' + str(pos) + ') Correct</strong></p>'
+                default_feedback = '<p class="correct"><strong>(' + bytes(pos) + ') Correct</strong></p>'
                 if selected_text in self.feedback[key]:
                     if self.feedback[key][selected_text] is not None:
-                        self.current_feedback += '<p class="correct"><strong>(' + str(pos) + ') Correct: </strong>' + self.feedback[key][selected_text] + '</p>'
+                        self.current_feedback += '<p class="correct"><strong>(' + bytes(pos) + ') Correct: </strong>' + self.feedback[key][selected_text] + '</p>'
                     else:
                         self.current_feedback += default_feedback
                 else:
@@ -230,10 +230,10 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
                 self.student_correctness[key] = 'True'
                 correct_count += 1
             else:
-                default_feedback = '<p class="incorrect"><strong>(' + str(pos) + ') Incorrect</strong></p>'
+                default_feedback = '<p class="incorrect"><strong>(' + bytes(pos) + ') Incorrect</strong></p>'
                 if selected_text in self.feedback[key]:
                     if self.feedback[key][selected_text] is not None:
-                        self.current_feedback += '<p class="incorrect"><strong>(' + str(pos) + ') Incorrect: </strong>' + self.feedback[key][selected_text] + '</p>'
+                        self.current_feedback += '<p class="incorrect"><strong>(' + bytes(pos) + ') Incorrect: </strong>' + self.feedback[key][selected_text] + '</p>'
                     else:
                         self.current_feedback += default_feedback
                 else:
@@ -313,7 +313,7 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
     def send_xblock_id(self, submissions, suffix=''):
         return {
             'result': 'success',
-            'xblock_id': unicode(self.scope_ids.usage_id),
+            'xblock_id': str(self.scope_ids.usage_id),
         }
 
     @XBlock.json_handler
@@ -373,7 +373,7 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
         Gets the content of a resource
         '''
         resource_content = pkg_resources.resource_string(__name__, resource_path)
-        return unicode(resource_content)
+        return str(resource_content)
 
     def render_template(self, template_path, context={}):
         '''
@@ -394,13 +394,13 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
 
         tree = etree.parse(StringIO(xmlstring))
 
-        for input_ref in tree.iter('input_ref'):
+        for input_ref in Element(tree.iter('input_ref')):
             for optioninput in tree.iter('optioninput'):
                 select = Element('select')
                 valuecorrectness = dict()
                 valuefeedback = dict()
                 if optioninput.attrib['id'] == input_ref.attrib['input']:
-                    newoption = SubElement(input_ref, 'option')
+                    newoption = SubElement(Element(input_ref), 'option')
                     newoption.text = ''
                     for option in optioninput.iter('option'):
                         newoption = SubElement(input_ref, 'option')
@@ -409,7 +409,7 @@ class InlineDropdownXBlock(EnforceDueDates, XBlock):
                         for optionhint in option.iter('optionhint'):
                             valuefeedback[option.text] = optionhint.text
                     input_ref.tag = 'select'
-                    input_ref.attrib['xblock_id'] = unicode(self.scope_ids.usage_id)
+                    input_ref.attrib['xblock_id'] = str(self.scope_ids.usage_id)
                     self.correctness[optioninput.attrib['id']] = valuecorrectness
                     self.feedback[optioninput.attrib['id']] = valuefeedback
 

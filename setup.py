@@ -29,5 +29,5 @@ setup(
             'inline-dropdown = inline_dropdown:InlineDropdownXBlock',
         ]
     },
-    package_data=package_data("inline_dropdown", "static"),
+    package_data=package_data("inline_dropdown", "static", "templates"),
 )
